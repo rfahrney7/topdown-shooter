@@ -58,6 +58,14 @@
     margin-bottom: 8px;
   }
 
+  .hud .timer {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--hud-text);
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+  }
+
   .health-track {
     width: 200px;
     height: 16px;
@@ -141,6 +149,7 @@
 
   <div class="hud">
     <div class="score">SCORE: <span id="score-val">0</span></div>
+    <div class="timer">TIME: <span id="timer-val">00:00</span></div>
     <div class="health-track"><div class="health-fill" id="health-fill"></div></div>
   </div>
 
@@ -149,6 +158,7 @@
   <div class="overlay hidden" id="game-over">
     <h1>YOU DIED</h1>
     <div class="final-score">Final Score: <span id="final-score-val">0</span></div>
+    <div class="final-score">Time Survived: <span id="final-time-val">00:00</span></div>
     <button id="restart-btn">Click to Restart</button>
   </div>
 </div>
@@ -317,7 +327,7 @@
   var ENEMY_CONTACT_COOLDOWN = 0.7;
   var SPAWN_INTERVAL = 1.1;
 
-  var player, bullets, enemies, score, spawnTimer, fireTimer, isGameOver;
+  var player, bullets, enemies, score, spawnTimer, fireTimer, isGameOver, elapsedTime;
 
   function resetGame() {
     player = {
@@ -336,7 +346,9 @@
     spawnTimer = SPAWN_INTERVAL;
     fireTimer = 0;
     isGameOver = false;
+    elapsedTime = 0;
     updateHud();
+    updateTimerDisplay();
     document.getElementById("game-over").classList.add("hidden");
   }
 
@@ -346,6 +358,17 @@
     var fill = document.getElementById("health-fill");
     fill.style.width = pct + "%";
     fill.style.background = pct <= 30 ? "var(--health-fill-low)" : "var(--health-fill)";
+  }
+
+  function formatTime(seconds) {
+    var total = Math.floor(seconds);
+    var m = Math.floor(total / 60);
+    var s = total % 60;
+    return (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
+  }
+
+  function updateTimerDisplay() {
+    document.getElementById("timer-val").textContent = formatTime(elapsedTime);
   }
 
   function spawnEnemy() {
@@ -384,6 +407,7 @@
   function triggerGameOver() {
     isGameOver = true;
     document.getElementById("final-score-val").textContent = score;
+    document.getElementById("final-time-val").textContent = formatTime(elapsedTime);
     document.getElementById("game-over").classList.remove("hidden");
   }
 
@@ -392,6 +416,9 @@
   // ---------------------------------------------------------------------
   function update(dt) {
     if (isGameOver) return;
+
+    elapsedTime += dt;
+    updateTimerDisplay();
 
     // --- player movement ---
     var dx = 0, dy = 0;

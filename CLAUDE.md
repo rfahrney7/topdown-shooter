@@ -17,9 +17,9 @@ There is no build, lint, or test tooling. To run a game, open its `.html` file d
 Canvas 2D top-down shooter. Everything lives in one IIFE inside the page's `<script>` block, structured as:
 
 - **Sprite generation** — player and enemy art is not loaded from image files. Each sprite is built at load time by `buildSpriteSheet()`, which calls per-frame draw functions (`drawPlayerFrame`, `drawEnemyFrame`) that rasterize pixel art onto an offscreen canvas using `pixelCircle`/`pixelRect`/`pixelDot` helpers (plain `fillRect` calls on a `FRAME`-sized grid, no anti-aliasing). The result is a real sprite sheet canvas, sliced per animation frame via `drawSprite()`'s `drawImage(sheet, sx, sy, ...)` call. Follow this pattern (grid helpers → sheet → sliced draw) if adding new sprites rather than sourcing image assets.
-- **Game state** — a small set of module-scoped variables (`player`, `bullets`, `enemies`, `score`, `spawnTimer`, `fireTimer`, `isGameOver`), reinitialized by `resetGame()` (used both on load and on restart-after-death).
-- **Loop** — `requestAnimationFrame`-driven `loop()` computes `dt` and calls `update(dt)` then `render()` each frame. `update()` handles input-driven movement/aiming, firing/cooldown, bullet and enemy movement, spawning, and all collision resolution (bullet↔enemy, enemy↔player) in one pass. `render()` is pure drawing with no state mutation.
-- **HUD** — plain DOM elements (`.hud`, `.health-fill`, `#game-over` overlay) layered over the canvas via absolute positioning, updated from game code (`updateHud()`) rather than being canvas-drawn.
+- **Game state** — a small set of module-scoped variables (`player`, `bullets`, `enemies`, `score`, `spawnTimer`, `fireTimer`, `isGameOver`, `elapsedTime`), reinitialized by `resetGame()` (used both on load and on restart-after-death).
+- **Loop** — `requestAnimationFrame`-driven `loop()` computes `dt` and calls `update(dt)` then `render()` each frame. `update()` handles input-driven movement/aiming, firing/cooldown, bullet and enemy movement, spawning, collision resolution (bullet↔enemy, enemy↔player), and the survival timer, in one pass. `render()` is pure drawing with no state mutation.
+- **HUD** — plain DOM elements (`.hud`, `.health-fill`, `#game-over` overlay) layered over the canvas via absolute positioning, updated from game code (`updateHud()` for score/health, `updateTimerDisplay()` for the elapsed-time readout, both formatted via `formatTime()`) rather than being canvas-drawn.
 
 ### `chalk-court.html`
 
