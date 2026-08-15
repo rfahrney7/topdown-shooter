@@ -243,28 +243,37 @@
     drawPlayerFrame(4, 5)
   ]);
 
-  // --- Enemy sprite: spiky sickly-green blob, 2-frame idle pulse ---
-  function drawEnemyFrame(bodyR, outlineR) {
+  // --- Enemy sprite: spiky blob, 2-frame idle pulse, palette-driven ---
+  var ENEMY_PALETTES = [
+    { outline: "#233318", body: "#6b8f3c", shade: "#84ab52", eye: "#1a1a1a" }, // green grunt
+    { outline: "#3a1414", body: "#b93b3b", shade: "#d95c5c", eye: "#1a1a1a" }, // red brute
+    { outline: "#251433", body: "#7a4fb0", shade: "#9c6fd6", eye: "#f4d35e" }, // purple stalker
+    { outline: "#3a2a0a", body: "#d98c2b", shade: "#f0ac4d", eye: "#1a1a1a" }  // orange scuttler
+  ];
+
+  function drawEnemyFrame(bodyR, outlineR, palette) {
     return function (fctx, ox, oy) {
       var spikeR = outlineR + 1;
-      pixelDot(fctx, ox, oy, CX + spikeR, CY, "#233318");
-      pixelDot(fctx, ox, oy, CX - spikeR, CY, "#233318");
-      pixelDot(fctx, ox, oy, CX, CY + spikeR, "#233318");
-      pixelDot(fctx, ox, oy, CX, CY - spikeR, "#233318");
-      pixelCircle(fctx, ox, oy, CX, CY, outlineR, "#233318");
-      pixelCircle(fctx, ox, oy, CX, CY, bodyR, "#6b8f3c");
-      pixelCircle(fctx, ox, oy, CX - 1, CY - 1, Math.max(1, bodyR - 3), "#84ab52");
-      pixelDot(fctx, ox, oy, CX + 1, CY - 1, "#1a1a1a");
-      pixelDot(fctx, ox, oy, CX + 2, CY - 1, "#1a1a1a");
-      pixelDot(fctx, ox, oy, CX + 1, CY + 1, "#1a1a1a");
-      pixelDot(fctx, ox, oy, CX + 2, CY + 1, "#1a1a1a");
+      pixelDot(fctx, ox, oy, CX + spikeR, CY, palette.outline);
+      pixelDot(fctx, ox, oy, CX - spikeR, CY, palette.outline);
+      pixelDot(fctx, ox, oy, CX, CY + spikeR, palette.outline);
+      pixelDot(fctx, ox, oy, CX, CY - spikeR, palette.outline);
+      pixelCircle(fctx, ox, oy, CX, CY, outlineR, palette.outline);
+      pixelCircle(fctx, ox, oy, CX, CY, bodyR, palette.body);
+      pixelCircle(fctx, ox, oy, CX - 1, CY - 1, Math.max(1, bodyR - 3), palette.shade);
+      pixelDot(fctx, ox, oy, CX + 1, CY - 1, palette.eye);
+      pixelDot(fctx, ox, oy, CX + 2, CY - 1, palette.eye);
+      pixelDot(fctx, ox, oy, CX + 1, CY + 1, palette.eye);
+      pixelDot(fctx, ox, oy, CX + 2, CY + 1, palette.eye);
     };
   }
 
-  var enemySheet = buildSpriteSheet([
-    drawEnemyFrame(5, 6),
-    drawEnemyFrame(5.6, 6.6)
-  ]);
+  var enemySheets = ENEMY_PALETTES.map(function (palette) {
+    return buildSpriteSheet([
+      drawEnemyFrame(5, 6, palette),
+      drawEnemyFrame(5.6, 6.6, palette)
+    ]);
+  });
 
   function drawSprite(sheet, frameIndex, x, y, angle, drawSize, hitFlash) {
     var f = sheet.frameSize;
@@ -387,7 +396,8 @@
       speed: ENEMY_SPEED_MIN + Math.random() * (ENEMY_SPEED_MAX - ENEMY_SPEED_MIN),
       animTimer: Math.random() * 10,
       hitFlash: 0,
-      angle: 0
+      angle: 0,
+      sheet: enemySheets[Math.floor(Math.random() * enemySheets.length)]
     });
   }
 
@@ -557,8 +567,8 @@
 
     for (var i = 0; i < enemies.length; i++) {
       var e = enemies[i];
-      var frame = Math.floor(e.animTimer * 4) % enemySheet.frameCount;
-      drawSprite(enemySheet, frame, e.x, e.y, e.angle, ENEMY_RADIUS * 2.4, e.hitFlash);
+      var frame = Math.floor(e.animTimer * 4) % e.sheet.frameCount;
+      drawSprite(e.sheet, frame, e.x, e.y, e.angle, ENEMY_RADIUS * 2.4, e.hitFlash);
     }
 
     var pFrame = player.moving ? Math.floor(player.animTimer * 8) % playerSheet.frameCount : 0;
