@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-A small collection of standalone browser games. Each game is a single self-contained `.html` file with inline `<style>` and `<script>` — no build step, no package manager, no external dependencies or network requests. `topdown-shooter.html` and `word-guess.html` are currently tracked in git; `chalk-court.html` exists in the working directory but is not part of the repo.
+A small collection of standalone browser games. Each game is a single self-contained `.html` file with inline `<style>` and `<script>` — no build step, no package manager, no external dependencies or network requests. Only `topdown-shooter.html` is currently tracked in git; `chalk-court.html` exists in the working directory but is not part of the repo. (`word-guess.html`, a Wordle-style game, was split out into its own repo: https://github.com/rfahrney7/word-guess.)
 
 ## Commands
 
@@ -21,16 +21,6 @@ Canvas 2D top-down shooter. Everything lives in one IIFE inside the page's `<scr
 - **Game state** — a small set of module-scoped variables (`player`, `bullets`, `enemies`, `score`, `spawnTimer`, `fireTimer`, `isGameOver`, `elapsedTime`), reinitialized by `resetGame()` (used both on load and on restart-after-death).
 - **Loop** — `requestAnimationFrame`-driven `loop()` computes `dt` and calls `update(dt)` then `render()` each frame. `update()` handles input-driven movement/aiming, firing/cooldown, bullet and enemy movement, spawning, collision resolution (bullet↔enemy, enemy↔player), and the survival timer, in one pass. `render()` is pure drawing with no state mutation.
 - **HUD** — plain DOM elements (`.hud`, `.health-fill`, `#game-over` overlay) layered over the canvas via absolute positioning, updated from game code (`updateHud()` for score/health, `updateTimerDisplay()` for the elapsed-time readout, both formatted via `formatTime()`) rather than being canvas-drawn.
-
-### `word-guess.html`
-
-Wordle-style word-guessing game following the same single-file, no-dependency pattern. Everything lives in one IIFE in the page's `<script>` block:
-
-- **Word list** — a single embedded array (`WORDS`, ~600 common 5-letter words) doubles as both the pool of possible answers (`resetGame()` picks one at random) and the dictionary used to validate guesses (`WORD_SET`, a `Set` built from `WORDS`). No daily/date-seeded puzzle — each "New Game" click picks a fresh random answer.
-- **Board/keyboard DOM** — `buildBoard()` and `buildKeyboard()` generate the 6x5 tile grid and on-screen QWERTY keyboard as plain DOM elements (not canvas-drawn), rebuilt fresh on every `resetGame()`.
-- **Guess evaluation** — `evaluateGuess()` does a two-pass compare against the answer (exact-position matches first, then leftover-letter matches with a `used[]` mask) to handle duplicate letters correctly, returning a `correct`/`present`/`absent` array consumed by both `revealRow()` (tile flip animation + coloring) and `applyKeyColor()` (keyboard key coloring, rank-ordered so a key never downgrades from correct back to present/absent).
-- **Input handling** — `handleKey()` is the single entry point for both physical keydown events and on-screen key clicks, routing to letter-append, backspace, or `submitGuess()`.
-- **Stats** — win/loss streak, games played, and wins are persisted to `localStorage` (`word-guess-stats`) via `loadStats()`/`saveStats()`, independent of any single game's in-memory state.
 
 ### `chalk-court.html`
 
